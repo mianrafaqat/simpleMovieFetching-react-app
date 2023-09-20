@@ -4,10 +4,10 @@ import WatchedBox from "./WatchedBox";
 // const average = (arr) =>
 //   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
-const Main = () => {
+const Main = ({ movies }) => {
   return (
     <main className="main">
-      <ListBox />
+      <ListBox movies={movies} />
       <WatchedBox />
     </main>
   );
