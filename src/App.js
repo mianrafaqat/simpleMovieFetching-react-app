@@ -33,35 +33,64 @@ const tempMovieData = [
 ];
 const KEY = "de9a9de6";
 export default function App() {
+  const [query, setQuery] = useState("inception");
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
   const [IsLoading, setIsLoading] = useState(false);
-  const query = "Money Heist";
+  const [error, setError] = useState("");
+  const tempQuery = "Money Heist";
 
   useEffect(() => {
     const fetchMovies = async () => {
-      setIsLoading(true);
-      const res = await fetch(
-        `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
-      );
-      const data = await res.json();
-      setMovies(data.Search);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        setError("");
+        const res = await fetch(
+          `http://www.omdbapi.com/?apikey=${KEY}&s=${query}`
+        );
+        if (!res.ok)
+          throw new Error("Something went wrong with fetching movies");
+        const data = await res.json();
+        if (data.Response === "False") throw new Error("Movie not found");
+        setMovies(data.Search);
+      } catch (err) {
+        console.log(err.message);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    if (query < 3) {
+      setError("");
+      setMovies([]);
+      return;
+    }
     fetchMovies();
-  }, []);
+  }, [query]);
 
   return (
     <>
       <Navbar>
         <Logo />
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <Numresults movies={movies} />
       </Navbar>
       <Main>
-        {IsLoading ? <Loader /> : <ListBox movies={movies} />}
+        {/* {IsLoading ? <Loader /> : <ListBox movies={movies} />} */}
+        {IsLoading && <Loader />}
+        {!IsLoading && !error && <ListBox movies={movies} />}
+        {error && <ErrorMessage message={error} />}
         <WatchedBox watched={watched} />
       </Main>
     </>
+  );
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      <span>⛔</span>
+      {message}
+    </p>
   );
 }
